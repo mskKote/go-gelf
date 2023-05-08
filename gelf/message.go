@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -125,29 +126,56 @@ func constructMessage(p []byte, hostname string, facility string, file string, l
 	// remove trailing and leading whitespace
 	p = bytes.TrimSpace(p)
 
+	// custom fields
+	extra := map[string]interface{}{
+		"_file": file,
+		"_line": line,
+	}
+
 	// If there are newlines in the message, use the first line
 	// for the short message and set the full message to the
 	// original input.  If the input has no newlines, stick the
 	// whole thing in Short.
-	short := p
-	full := []byte("")
-	if i := bytes.IndexRune(p, '\n'); i > 0 {
-		short = p[:i]
-		full = p
+	var short, full string
+	var level int32 = LOG_INFO
+
+	// JSON parse message
+	var mesJsonMap map[string]interface{}
+	err := json.Unmarshal(p, &mesJsonMap)
+	if err == nil {
+		// p to string
+		shortBuff := p
+		fullBuff := []byte("")
+		if i := bytes.IndexRune(p, '\n'); i > 0 {
+			shortBuff = p[:i]
+			fullBuff = p
+		}
+		short = string(shortBuff)
+		full = string(fullBuff)
+	} else {
+		// p to Message structure
+		for key, v := range mesJsonMap {
+			if key == "short" {
+				short = v.(string)
+			} else if key == "full" {
+				full = v.(string)
+			} else if strings.HasPrefix(key, "_") {
+				extra[key] = v
+			} else if key == "level" {
+				level = v.(int32)
+			}
+		}
 	}
 
 	m = &Message{
 		Version:  "1.1",
 		Host:     hostname,
-		Short:    string(short),
-		Full:     string(full),
+		Short:    short,
+		Full:     full,
 		TimeUnix: float64(time.Now().UnixNano()) / float64(time.Second),
-		Level:    6, // info
+		Level:    level,
 		Facility: facility,
-		Extra: map[string]interface{}{
-			"_file": file,
-			"_line": line,
-		},
+		Extra:    extra,
 	}
 
 	return m

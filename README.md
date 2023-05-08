@@ -1,7 +1,11 @@
 go-gelf - GELF Library and Writer for Go
 ========================================
 
-[GELF] (Graylog Extended Log Format) is an application-level logging
+if message JSON then it transport as GELF
+
+------
+
+[GELF](https://go2docs.graylog.org/5-0/getting_in_log_data/gelf.html) (Graylog Extended Log Format) is an application-level logging
 protocol that avoids many of the shortcomings of [syslog]. While it
 can be run over any stream or datagram transport protocol, it has
 special support ([chunking]) to allow long messages to be split over
@@ -10,7 +14,7 @@ multiple datagrams.
 Versions
 --------
 
-In order to enable versionning of this package with Go, this project
+In order to enable versioning of this package with Go, this project
 is using GoPkg.in. The default branch of this project will be v1
 for some time to prevent breaking clients. We encourage all project
 to change their imports to the new GoPkg.in URIs as soon as possible.
