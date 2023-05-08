@@ -132,18 +132,18 @@ func constructMessage(p []byte, hostname string, facility string, file string, l
 		"_line": line,
 	}
 
-	// If there are newlines in the message, use the first line
-	// for the short message and set the full message to the
-	// original input.  If the input has no newlines, stick the
-	// whole thing in Short.
 	var short, full string
 	var level int32 = LOG_INFO
 
 	// JSON parse message
 	var mesJsonMap map[string]interface{}
 	err := json.Unmarshal(p, &mesJsonMap)
-	if err == nil {
-		// p to string
+	if err != nil {
+		// p --> string
+		// If there are newlines in the message, use the first line
+		// for the short message and set the full message to the
+		// original input.  If the input has no newlines, stick the
+		// whole thing in Short.
 		shortBuff := p
 		fullBuff := []byte("")
 		if i := bytes.IndexRune(p, '\n'); i > 0 {
@@ -153,7 +153,7 @@ func constructMessage(p []byte, hostname string, facility string, file string, l
 		short = string(shortBuff)
 		full = string(fullBuff)
 	} else {
-		// p to Message structure
+		// p --> Message
 		for key, v := range mesJsonMap {
 			if key == "short" {
 				short = v.(string)
